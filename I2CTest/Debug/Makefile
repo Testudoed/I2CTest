@@ -37,7 +37,8 @@ SUBDIRS :=
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
 ../I2cSlave.cpp \
-../I2CTest.cpp
+../I2CTest.cpp \
+../prism_interface.cpp
 
 
 PREPROCESSING_SRCS += 
@@ -48,19 +49,23 @@ ASM_SRCS +=
 
 OBJS +=  \
 I2cSlave.o \
-I2CTest.o
+I2CTest.o \
+prism_interface.o
 
 OBJS_AS_ARGS +=  \
 I2cSlave.o \
-I2CTest.o
+I2CTest.o \
+prism_interface.o
 
 C_DEPS +=  \
 I2cSlave.d \
-I2CTest.d
+I2CTest.d \
+prism_interface.d
 
 C_DEPS_AS_ARGS +=  \
 I2cSlave.d \
-I2CTest.d
+I2CTest.d \
+prism_interface.d
 
 OUTPUT_FILE_PATH +=I2CTest.elf
 
@@ -73,6 +78,8 @@ OUTPUT_FILE_DEP:= ./makedep.mk
 LIB_DEP+= 
 
 # AVR32/GNU C Compiler
+
+
 
 
 
