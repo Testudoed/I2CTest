@@ -9,7 +9,6 @@ extern "C"{
 	#include <avr/interrupt.h>
 };
 
-
 #include "I2cSlave.h"
 
 void (*I2cSlave::user_onRequest)(void) = nullptr;
@@ -119,41 +118,39 @@ ISR(TWI_vect)
 			break;
 			
 		// Data byte in TWDR has been transmitted; NACK has been received.
-		case I2cSlave::I2C_DEFINITIONS::TWI_STX_DATA_NACK:          
+		case I2cSlave::I2C_DEFINITIONS::TWI_STX_DATA_NACK:   
+			I2cSlave::EndTransmission();              
 			I2cSlave::ReadyTWCR();  
-            I2cSlave::EndTransmission();        
 			break;
 		
 		// Own SLA+W has been received ACK has been returned
 		case I2cSlave::I2C_DEFINITIONS::TWI_SRX_ADR_ACK:         
 			I2cSlave::ClearBuffer();  
-			// Reset the TWI Interrupt to wait for a new event.
 			I2cSlave::ReadyTWCR();
 			break;
 			
 		case I2cSlave::I2C_DEFINITIONS::TWI_SRX_ADR_DATA_ACK:       // Previously addressed with own SLA+W; data has been received; ACK has been returned
 		case I2cSlave::I2C_DEFINITIONS::TWI_SRX_GEN_DATA_ACK:       // Previously addressed with general call; data has been received; ACK has been returned
 			I2cSlave::RxByte();
-			// Reset the TWI Interrupt to wait for a new event.
 			I2cSlave::ReadyTWCR();                               
 			break;
 			
 		// A STOP condition or repeated START condition has been received while still addressed as Slave	
 		case I2cSlave::I2C_DEFINITIONS::TWI_SRX_STOP_RESTART:       
-			// Enter not addressed mode and listen to address match
-			I2cSlave::ReadyTWCR();
 			I2cSlave::RxComplete();
+			I2cSlave::EndTransmission();
+			I2cSlave::ReadyTWCR();	// Enter not addressed mode and listen to address match
 			break;
 			
 		case I2cSlave::I2C_DEFINITIONS::TWI_SRX_ADR_DATA_NACK:			// Previously addressed with own SLA+W; data has been received; NOT ACK has been returned
 		case I2cSlave::I2C_DEFINITIONS::TWI_SRX_GEN_DATA_NACK:			// Previously addressed with general call; data has been received; NOT ACK has been returned
 		case I2cSlave::I2C_DEFINITIONS::TWI_STX_DATA_ACK_LAST_BYTE:	// Last data byte in TWDR has been transmitted (TWEA = “0”); ACK has been received
 		case I2cSlave::I2C_DEFINITIONS::TWI_BUS_ERROR:					// Bus error due to an illegal START or STOP condition
-		TWCR =   (1<<TWSTO)|(1<<TWINT);		//Recover from TWI_BUS_ERROR, this will release the SDA and SCL pins thus enabling other devices to use the bus
+			TWCR =   (1<<TWSTO)|(1<<TWINT);		//Recover from TWI_BUS_ERROR, this will release the SDA and SCL pins thus enabling other devices to use the bus
 		break;
 		default:
-			I2cSlave::ReadyTWCR();
 			I2cSlave::EndTransmission();  
+			I2cSlave::ReadyTWCR();
 			break;
 	}
 }

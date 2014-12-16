@@ -12,6 +12,8 @@
 
 extern "C" {
 	#include <avr/interrupt.h>
+	#include <avr/eeprom.h>
+	#include <avr/sleep.h>
 }
 
 #include "prism_interface.h"
@@ -24,12 +26,19 @@ void fb_init( void );
 
 int main(void)
 {
+	uint8_t dataArray[10];
 	// Perform GPIO Initializations
 	fb_init();
 	// Enable Interrupts
 	sei();
 	
 	PrismIf.Initialize();
+	
+	for(int i = 0; i < 10; i++)
+		dataArray[i] = i+1;
+	
+	PrismIf.SendData(dataArray, 10);
+	
 	PWR_LED_PORTR |= (1<<PWR_LED);
     while(1)
     {
@@ -39,7 +48,14 @@ int main(void)
 			MODE_LED_G_PORTR |= (1<<MODE_LED_G);
 			MODE_LED_B_PORTR |= (1<<MODE_LED_B);
 		}
-				
+		
+		set_sleep_mode(SLEEP_MODE_IDLE);
+		cli();
+		sleep_enable();
+		sei();
+		// Enter sleep mode, wake on interrupt, blocks until woken
+		sleep_cpu();
+		sleep_disable();		
     }
 }
 
