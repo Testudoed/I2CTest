@@ -32,6 +32,9 @@
  * * (MISRA C rule 61) every non-empty case clause in a switch statement shall be terminated with a break statement
 */
 
+#ifndef TWI_SLAVE_H
+#define TWI_SLAVE_H
+
 /****************************************************************************
   TWI Status/Control register definitions
 ****************************************************************************/
@@ -119,3 +122,5 @@ unsigned char TWI_Get_Data_From_Transceiver( unsigned char *, unsigned char );
 // TWI Miscellaneous status codes
 #define TWI_NO_STATE               0xF8  // No relevant state information available; TWINT = “0”
 #define TWI_BUS_ERROR              0x00  // Bus error due to an illegal START or STOP condition
+
+#endif
