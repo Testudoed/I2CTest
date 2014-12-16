@@ -6,11 +6,7 @@
  */ 
 
 #include "prism_interface.h"
-
-#ifndef F_CPU
-// Frequency CPU
-#define F_CPU				20000000UL
-#endif
+#include "hardware.h"
 
 // Initialize register array
 uint8_t PrismInterface::m_prismRegisters[REGISTER_LENGTH];

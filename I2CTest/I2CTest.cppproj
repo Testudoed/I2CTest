@@ -135,6 +135,9 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="hardware.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="I2cSlave.cpp">
       <SubType>compile</SubType>
     </Compile>
