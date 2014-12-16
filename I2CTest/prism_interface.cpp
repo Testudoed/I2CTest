@@ -10,8 +10,11 @@
 
 // Initialize register array
 uint8_t PrismInterface::m_prismRegisters[REGISTER_LENGTH];
-uint8_t PrismInterface::m_currentRegister = 0x00;
+volatile uint8_t PrismInterface::m_currentRegister = 0x00;
+volatile uint8_t PrismInterface::_dataBufferPos = 0;
 uint8_t* PrismInterface::_sendData = nullptr;
+uint8_t PrismInterface::_sendDataLength = 0;
+
 
 PrismInterface::PrismInterface()
 {
@@ -29,21 +32,16 @@ void PrismInterface::Initialize()
 void PrismInterface::i2c_receive(int numBytes)
 {
 	m_currentRegister = I2cSlaveIf.Read();
+	
 	if(numBytes >= 2)
 	{
 		m_prismRegisters[m_currentRegister] = I2cSlaveIf.Read();
 	}
-	while(I2cSlaveIf.Available())
-	{
-		// clear buffer
-		I2cSlaveIf.Read();
-	}
+	I2cSlaveIf.ClearBuffer();
 }
 
 void PrismInterface::i2c_request()
-{
-	//I2cSlaveIf.SendByte(m_prismRegisters[m_currentRegister]);
-	
+{	
 	switch(m_currentRegister)
 	{
 		case ACTION:
@@ -56,7 +54,7 @@ void PrismInterface::i2c_request()
 			I2cSlaveIf.SendByte(m_prismRegisters[m_currentRegister]);
 			break;
 		case XAPI_TX:
-			//I2cSlaveIf.SendByte(_sendData, m_prismRegisters[XAPI_TX_NUM_BYTES]);
+			BufferedSend();
 			m_prismRegisters[XAPI_TX_NUM_BYTES] = 0;
 			break;
 		default: I2cSlaveIf.SendByte(m_prismRegisters[m_currentRegister]); break;
@@ -75,7 +73,17 @@ void PrismInterface::Reset()
 void PrismInterface::SendData(uint8_t* dataBuffer, uint8_t length)
 {
 	_sendData = dataBuffer;
-	m_prismRegisters[XAPI_TX_NUM_BYTES] = length;
+	_dataBufferPos = 0;
+	_sendDataLength = length;
+	m_prismRegisters[XAPI_TX_NUM_BYTES] = _sendDataLength;
+}
+
+void PrismInterface::BufferedSend()
+{
+	if(_dataBufferPos < _sendDataLength)
+		I2cSlaveIf.SendByte(_sendData[_dataBufferPos++]);
+	else
+		I2cSlaveIf.SendByte(0xFF);
 }
 
 PrismInterface PrismIf = PrismInterface();

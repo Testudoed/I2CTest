@@ -93,7 +93,14 @@ protected:
 	/// <summary>	Prism device status and event registers[]. </summary>
 	static uint8_t m_prismRegisters[];
 	/// <summary>	Maintains current register index </summary>
-	static uint8_t m_currentRegister;
+	static volatile uint8_t m_currentRegister;
+	/// <summary>	Data Buffer position</summary>
+	static volatile uint8_t _dataBufferPos;
+	/// <summary>	Data Send</summary>
+	static uint8_t* _sendData;
+	/// <summary>	Data Buffer position</summary>
+	static uint8_t _sendDataLength;
+
 		
 private:
 	/// <summary>	Length of the register. </summary>
@@ -102,9 +109,6 @@ private:
 	const static uint8_t I2C_ADDRESS = 0x70;
 	/// <summary>	I2C Bitrate </summary>
 	const static uint32_t I2C_BITRATE = 100000;
-	/// <summary>	Data Send</summary>
-	static uint8_t* _sendData;
-
 	/// <summary>	I2C receive event handle. </summary>
 	///
 	/// <param name="numBytes">	Number of bytes. </param>
@@ -112,6 +116,8 @@ private:
 
 	/// <summary>	I2C Request Event Handle. </summary>
 	static void i2c_request(void);
+	
+	static void BufferedSend();
 };
 
 extern PrismInterface PrismIf;
