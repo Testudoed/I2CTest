@@ -109,6 +109,7 @@
   <avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>
   <avrgcccpp.compiler.optimization.DebugLevel>Default (-g2)</avrgcccpp.compiler.optimization.DebugLevel>
   <avrgcccpp.compiler.warnings.AllWarnings>True</avrgcccpp.compiler.warnings.AllWarnings>
+  <avrgcccpp.compiler.miscellaneous.OtherFlags>-std=c++11</avrgcccpp.compiler.miscellaneous.OtherFlags>
   <avrgcccpp.linker.libraries.Libraries>
     <ListValues>
       <Value>libm</Value>
@@ -119,7 +120,19 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="I2cSlave.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="I2cSlave.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="I2CTest.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="TWI_slave.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="TWI_slave.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>

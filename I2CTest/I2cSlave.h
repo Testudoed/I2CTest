@@ -9,20 +9,53 @@
 #ifndef I2CSLAVE_H_
 #define I2CSLAVE_H_
 
-#include <avr/io.h>
+// Define AUTO_INCR_RX to automatically increment current register address for 
+// successive reads
+#ifndef AUTO_INCR_RX
+#define AUTO_INCR_RX 0
+#endif
 
+// Define AUTO_INCR_TX to automatically increment current register address for
+// successive writes
+#ifndef AUTO_INCR_TX
+#define AUTO_INCR_TX 0
+#endif
+
+
+extern "C"{
+	#include <avr/io.h>	
+	void TWI_vect(void)  __attribute__ ((signal));
+};
 
 class I2cSlave 
 {
 public:
-	I2cSlave(uint8_t devAddr);
+	I2cSlave(uint8_t devAddr, uint32_t sysClk, uint32_t busFreq);
+	inline uint8_t IsBusy() {return _isBusy;}
 	void onReceive( void (*)(int) );
 	void onRequest( void (*)(void) );
-	void SetRegisterBuffer(uint8_t* regs);
+	void SetRegisterBuffer(uint8_t* regs, uint8_t size);
 	
+	inline uint8_t GetCurrentRegisterAddr() { return _currentRegAddr; }
+	inline void SendByte(uint8_t dataByte) { _registerBuffer[0] = dataByte; }
+	
+	friend void TWI_vect();
 protected:
-	uint8_t _registerBuffer;
-	
+	const static uint32_t DATA_BUFFER_SIZE = 32;
+	static volatile uint8_t* _registerBuffer;
+	static uint8_t _registerSize;
+	static volatile uint8_t _isBusy;
+	static volatile uint8_t _currentRegAddr;
+	static volatile uint8_t _dataBuffer[DATA_BUFFER_SIZE];
+	static volatile uint8_t _dataBufferPos;
+	static void (*user_onRequest)(void);
+	static void (*user_onReceive)(int);
+
+	static void RxByte();
+	static void TxByte();
+	static void RxComplete();
+	static void EndTransmission();
+	static void ReadyTWCR();
 	enum I2C_DEFINITIONS
 	{
 		/****************************************************************************
@@ -89,7 +122,7 @@ protected:
 		TWI_SRX_STOP_RESTART =			0xA0,  
 
 		// TWI Miscellaneous status codes
-		TWI_NO_STATE =					0xF8  // No relevant state information available; TWINT = “0”
+		TWI_NO_STATE =					0xF8,  // No relevant state information available; TWINT = “0”
 		TWI_BUS_ERROR =					0x00  // Bus error due to an illegal START or STOP condition
 	};
 };
