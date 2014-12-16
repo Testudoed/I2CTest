@@ -43,7 +43,7 @@ public:
 protected:
 	const static uint32_t DATA_BUFFER_SIZE = 32;
 	static volatile uint8_t* _registerBuffer;
-	static uint8_t _registerSize;
+	static volatile uint8_t _registerSize;
 	static volatile uint8_t _isBusy;
 	static volatile uint8_t _currentRegAddr;
 	static volatile uint8_t _dataBuffer[DATA_BUFFER_SIZE];

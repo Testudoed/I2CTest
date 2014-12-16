@@ -6,5 +6,3 @@ I2cSlave.cpp
 
 I2CTest.cpp
 
-TWI_slave.c
-
