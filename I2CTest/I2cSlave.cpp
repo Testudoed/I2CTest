@@ -20,6 +20,7 @@ volatile uint8_t I2cSlave::_registerSize = 0;
 volatile uint8_t  I2cSlave::_isBusy = 0;
 volatile uint8_t I2cSlave::_currentRegAddr = 0;
 volatile uint8_t I2cSlave::_dataBufferPos = 0;
+volatile uint8_t I2cSlave::_numBytesRx = 0;
 
 #ifndef cbi
 #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~(1<<bit))
@@ -29,7 +30,7 @@ volatile uint8_t I2cSlave::_dataBufferPos = 0;
 #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= (1<<bit))
 #endif
 
-I2cSlave::I2cSlave(uint8_t devAddr, uint32_t sysClk, uint32_t busFreq)
+void I2cSlave::Initialize(uint8_t devAddr, uint32_t sysClk, uint32_t busFreq)
 {
 	 // Initialize I2C pre-scaler and bit rate
 	cbi(TWSR, TWPS0);
@@ -59,7 +60,7 @@ void I2cSlave::RxComplete()
 	if(_registerBuffer != nullptr)
 	{
 		_currentRegAddr = _dataBuffer[0];
-#ifdef AUTO_INCR_RX
+#if AUTO_INCR_RX
 		int i = 0;
 		while( i < _dataBufferPos && _currentRegAddr < _registerSize)
 		{
@@ -77,7 +78,7 @@ void I2cSlave::TxByte()
 {
 	if(_registerBuffer != nullptr && _currentRegAddr < _registerSize)
 	{
-#ifdef AUTO_INCR_TX
+#if AUTO_INCR_TX
 		_dataBuffer[0] = _registerBuffer[_currentRegAddr++];	
 #else
 		_dataBuffer[0] = _registerBuffer[_currentRegAddr];
@@ -121,7 +122,8 @@ ISR(TWI_vect)
 			break;
 		
 		// Own SLA+W has been received ACK has been returned
-		case I2cSlave::I2C_DEFINITIONS::TWI_SRX_ADR_ACK:           
+		case I2cSlave::I2C_DEFINITIONS::TWI_SRX_ADR_ACK:         
+			I2cSlave::ClearBuffer();  
 			// Reset the TWI Interrupt to wait for a new event.
 			I2cSlave::ReadyTWCR();
 			break;
@@ -152,3 +154,5 @@ ISR(TWI_vect)
 			break;
 	}
 }
+
+I2cSlave I2cSlaveIf = I2cSlave();

@@ -30,14 +30,19 @@ extern "C"{
 class I2cSlave 
 {
 public:
-	I2cSlave(uint8_t devAddr, uint32_t sysClk, uint32_t busFreq);
+	I2cSlave() {}
+	void Initialize(uint8_t devAddr, uint32_t sysClk, uint32_t busFreq);
 	inline uint8_t IsBusy() {return _isBusy;}
-	void onReceive( void (*)(int) );
-	void onRequest( void (*)(void) );
+	void onReceive( void (*function)(int) ) { user_onReceive = function; }
+	void onRequest( void (*function)(void) ) { user_onRequest = function; }
 	void SetRegisterBuffer(uint8_t* regs, uint8_t size);
 	
 	inline uint8_t GetCurrentRegisterAddr() { return _currentRegAddr; }
 	inline void SendByte(uint8_t dataByte) { _registerBuffer[0] = dataByte; }
+		
+	inline uint8_t Available() { return _numBytesRx;}
+	inline uint8_t Read() { _numBytesRx--; return _dataBuffer[_dataBufferPos++];}
+	inline static void ClearBuffer() { _numBytesRx = 0; }
 	
 	friend void TWI_vect();
 protected:
@@ -48,6 +53,7 @@ protected:
 	static volatile uint8_t _currentRegAddr;
 	static volatile uint8_t _dataBuffer[DATA_BUFFER_SIZE];
 	static volatile uint8_t _dataBufferPos;
+	static volatile uint8_t _numBytesRx;
 	static void (*user_onRequest)(void);
 	static void (*user_onReceive)(int);
 
@@ -127,7 +133,7 @@ protected:
 	};
 };
 
-
+extern I2cSlave I2cSlaveIf;
 
 
 #endif /* I2CSLAVE_H_ */
