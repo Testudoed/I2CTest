@@ -20,7 +20,7 @@ volatile uint8_t I2cSlave::_registerSize = 0;
 volatile uint8_t  I2cSlave::_isBusy = 0;
 volatile uint8_t I2cSlave::_currentRegAddr = 0;
 volatile uint8_t I2cSlave::_dataBufferPos = 0;
-volatile uint8_t I2cSlave::_numBytesRx = 0;
+volatile uint8_t I2cSlave::_numRxBytesReady = 0;
 
 #ifndef cbi
 #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~(1<<bit))
@@ -57,21 +57,22 @@ void I2cSlave::RxByte()
 
 void I2cSlave::RxComplete()
 {
+	_numRxBytesReady = _dataBufferPos;
+	_dataBufferPos = 0;
 	if(_registerBuffer != nullptr)
 	{
 		_currentRegAddr = _dataBuffer[0];
+		if(_numRxBytesReady > 1)
+			_registerBuffer[_currentRegAddr] = _dataBuffer[1];
 #if AUTO_INCR_RX
-		int i = 0;
-		while( i < _dataBufferPos && _currentRegAddr < _registerSize)
-		{
+		for(int i = 2; i < _numRxBytesReady && _currentRegAddr < _registerSize; i++)
 			_registerBuffer[_currentRegAddr++] = _dataBuffer[i];
-		}
 #else
 		_registerBuffer[_currentRegAddr] = _dataBuffer[0];
 #endif
 	}
 	if(user_onReceive != nullptr)
-		user_onReceive(_dataBufferPos);
+		user_onReceive(_numRxBytesReady);
 }
 
 void I2cSlave::TxByte()
@@ -84,8 +85,10 @@ void I2cSlave::TxByte()
 		_dataBuffer[0] = _registerBuffer[_currentRegAddr];
 #endif
 	}
+	
 	if(user_onRequest != nullptr)
 		user_onRequest();
+		
 	TWDR = _dataBuffer[0];
 }
 

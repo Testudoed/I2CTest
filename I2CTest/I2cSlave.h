@@ -38,11 +38,11 @@ public:
 	void SetRegisterBuffer(uint8_t* regs, uint8_t size);
 	
 	inline uint8_t GetCurrentRegisterAddr() { return _currentRegAddr; }
-	inline void SendByte(uint8_t dataByte) { _registerBuffer[0] = dataByte; }
+	inline void SendByte(uint8_t dataByte) { _dataBuffer[0] = dataByte; }
 		
-	inline uint8_t Available() { return _numBytesRx;}
-	inline uint8_t Read() { _numBytesRx--; return _dataBuffer[_dataBufferPos++];}
-	inline static void ClearBuffer() { _numBytesRx = 0; }
+	inline uint8_t Available() { return _numRxBytesReady;}
+	inline uint8_t Read() { _numRxBytesReady--; return _dataBuffer[_dataBufferPos++];}
+	inline static void ClearBuffer() { _numRxBytesReady = 0; _dataBufferPos = 0; }
 	
 	friend void TWI_vect();
 protected:
@@ -53,7 +53,7 @@ protected:
 	static volatile uint8_t _currentRegAddr;
 	static volatile uint8_t _dataBuffer[DATA_BUFFER_SIZE];
 	static volatile uint8_t _dataBufferPos;
-	static volatile uint8_t _numBytesRx;
+	static volatile uint8_t _numRxBytesReady;
 	static void (*user_onRequest)(void);
 	static void (*user_onReceive)(int);
 
